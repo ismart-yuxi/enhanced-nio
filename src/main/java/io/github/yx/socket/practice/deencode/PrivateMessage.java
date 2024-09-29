@@ -1,16 +1,15 @@
 package io.github.yx.socket.practice.deencode;
 
-// 私有协议消息类
+/**
+ * PrivateMessage类表示私有协议消息的结构。
+ */
 public class PrivateMessage {
-    private byte version;
-    private byte type;
-    private int sequence;
-    private long timestamp;
-    private int checksum;
-    private byte[] data;
-
-    public PrivateMessage() {
-    }
+    private byte version; // 协议版本
+    private byte type; // 消息类型
+    private int sequence; // 消息序列号
+    private long timestamp; // 时间戳
+    private int checksum; // 校验和
+    private byte[] data; // 消息数据
 
     public PrivateMessage(byte version, byte type, int sequence, long timestamp, int checksum, byte[] data) {
         this.version = version;
@@ -21,6 +20,7 @@ public class PrivateMessage {
         this.data = data;
     }
 
+    // Getter方法
     public byte getVersion() {
         return version;
     }

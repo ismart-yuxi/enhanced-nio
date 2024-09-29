@@ -11,11 +11,11 @@ import io.github.yx.socket.practice.plugin.impl.HeartbeatPlugin;
 import java.io.IOException;
 
 // 主类
-public class EnhancedNIOSample {
+public class EnhancedNIOServerSample {
     public static void main(String[] args) throws IOException {
         Bootstrap bootstrap = new Bootstrap.Builder()
-                .addHandler(new ReadHandler(new PrivateProtocolDecoder()))
-                .addHandler(new WriteHandler(new PrivateProtocolEncoder()))
+                .addHandler(new ReadHandler<>(new PrivateProtocolDecoder()))
+                .addHandler(new WriteHandler<>(new PrivateProtocolEncoder()))
                 .enableSessionManagement()
                 .addPlugin(new HeartbeatPlugin())
 //                .addPlugin(new PerformanceMonitorPlugin())

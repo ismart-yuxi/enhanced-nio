@@ -1,6 +1,5 @@
 package io.github.yx.socket.practice.core;
 
-
 import io.github.yx.socket.practice.exception.GlobalExceptionHandler;
 import io.github.yx.socket.practice.handler.ChannelHandler;
 import io.github.yx.socket.practice.plugin.PluginChain;
@@ -17,7 +16,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-// EventLoop类
+/**
+ * EventLoop类用于处理I/O事件。
+ */
 public class EventLoop {
     private final Selector selector;
     private final ExecutorService ioExecutor;
@@ -35,23 +36,27 @@ public class EventLoop {
     }
 
     public void registerChannel(ServerSocketChannel serverSocketChannel, List<ChannelHandler> handlers) throws IOException {
-        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT, handlers);
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT, handlers); // 注册服务端通道
+    }
+
+    public void registerChannel(SocketChannel socketChannel, List<ChannelHandler> handlers) throws IOException {
+        socketChannel.register(selector, SelectionKey.OP_READ, handlers); // 注册客户端通道
     }
 
     public void run() {
         ioExecutor.submit(() -> {
             while (true) {
                 try {
-                    selector.select();
+                    selector.select(); // 选择准备好的通道
                     Set<SelectionKey> keys = selector.selectedKeys();
                     Iterator<SelectionKey> iterator = keys.iterator();
                     while (iterator.hasNext()) {
                         SelectionKey key = iterator.next();
                         iterator.remove();
                         if (key.isAcceptable()) {
-                            handleAccept(key);
+                            handleAccept(key); // 处理接受连接
                         } else if (key.isReadable()) {
-                            handleRead(key);
+                            handleRead(key); // 处理读取数据
                         }
                     }
                 } catch (IOException e) {
@@ -64,16 +69,16 @@ public class EventLoop {
     private void handleAccept(SelectionKey key) throws IOException {
         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
         SocketChannel socketChannel = serverSocketChannel.accept();
-        socketChannel.configureBlocking(false);
+        socketChannel.configureBlocking(false); // 设置为非阻塞模式
 
         List<ChannelHandler> handlers = (List<ChannelHandler>) key.attachment();
         ChannelPipeline pipeline = new ChannelPipeline();
         handlers.forEach(pipeline::addLast);
 
         if (sessionManager != null) {
-            sessionManager.addSession(socketChannel, pipeline);
+            sessionManager.addSession(socketChannel, pipeline); // 添加会话
         }
-        socketChannel.register(selector, SelectionKey.OP_READ, pipeline);
+        socketChannel.register(selector, SelectionKey.OP_READ, pipeline); // 注册读取事件
         pipeline.fireChannelActive(); // 触发连接建立事件
     }
 
@@ -85,17 +90,17 @@ public class EventLoop {
             int bytesRead = channel.read(buffer);
             if (bytesRead == -1) {
                 if (sessionManager != null) {
-                    sessionManager.removeSession(channel);
+                    sessionManager.removeSession(channel); // 移除会话
                 }
-                channel.close();
-                pipeline.fireChannelInactive();
+                channel.close(); // 关闭通道
+                pipeline.fireChannelInactive(); // 触发连接关闭事件
             } else {
-                buffer.flip();
+                buffer.flip(); // 切换到读取模式
                 if (pluginChain != null) {
-                    pluginChain.executeAll(new ChannelHandlerContext(channel, pipeline), bytesRead);
+                    pluginChain.executeAll(new ChannelHandlerContext(channel, pipeline), bytesRead); // 执行插件
                 }
                 workerExecutor.submit(() -> {
-                    pipeline.fireChannelRead(buffer);
+                    pipeline.fireChannelRead(buffer); // 传递读取的数据
                 });
             }
         } catch (IOException e) {
@@ -104,9 +109,9 @@ public class EventLoop {
     }
 
     public void write(SocketChannel channel, ByteBuffer buffer) throws IOException {
-        int bytesWritten = channel.write(buffer);
+        int bytesWritten = channel.write(buffer); // 写入数据
         if (pluginChain != null) {
-            pluginChain.executeAll(new ChannelHandlerContext(channel, null), -bytesWritten);
+            pluginChain.executeAll(new ChannelHandlerContext(channel, null), -bytesWritten); // 执行插件
         }
     }
 }

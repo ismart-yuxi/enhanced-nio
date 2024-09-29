@@ -1,13 +1,14 @@
 package io.github.yx.socket.practice.plugin.impl;
 
-
 import io.github.yx.socket.practice.core.ChannelHandlerContext;
 import io.github.yx.socket.practice.plugin.Plugin;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-// 性能监控插件
+/**
+ * PerformanceMonitorPlugin类用于监控性能。
+ */
 public class PerformanceMonitorPlugin implements Plugin {
     private long totalReadBytes = 0;
     private long totalWriteBytes = 0;
@@ -26,13 +27,23 @@ public class PerformanceMonitorPlugin implements Plugin {
         if (isRead) {
             ctx.channel().read(buffer);
             totalReadBytes += bytes;
-            System.out.println("Read bytes: " + new String(buffer.array(), 0, bytes));
+            printBytes(buffer.array(), bytes);
             System.out.println("Total read bytes: " + totalReadBytes);
         } else {
             ctx.channel().write(buffer);
             totalWriteBytes += bytes;
-            System.out.println("Written bytes: " + new String(buffer.array(), 0, bytes));
+            printBytes(buffer.array(), bytes);
             System.out.println("Total write bytes: " + totalWriteBytes);
         }
+    }
+
+    private void printBytes(byte[] data, int length) {
+        for (int i = 0; i < length; i++) {
+            if (i % 16 == 0) {
+                System.out.printf("%n%04x: ", i);
+            }
+            System.out.printf("%02x ", data[i]);
+        }
+        System.out.println();
     }
 }

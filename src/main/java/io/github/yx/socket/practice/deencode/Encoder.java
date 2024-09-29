@@ -1,10 +1,11 @@
 package io.github.yx.socket.practice.deencode;
 
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-// 定义编码器和解码器接口
+/**
+ * Encoder接口定义了编码消息的方法。
+ */
 public interface Encoder<T> {
-    ByteBuffer encode(T message) throws IOException;
+    ByteBuffer encode(T message) throws IOException; // 编码消息为ByteBuffer
 }
